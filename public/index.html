@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 10px; border: 1px solid #ccc; text-align: left; }
+    th { background-color: #f4f4f4; }
+    button { color: #fff; background: #007BFF; border: none; padding: 5px 10px; cursor: pointer; }
+    button.delete { background: #FF4B4B; }
+  </style>
+</head>
+<body>
+  <h1>User Management By Samuel Mansaray</h1>
+
+  <!-- Add User Form -->
+  <form id="userForm">
+    <input type="text" id="name" name="name" placeholder="Name" required>
+    <input type="email" id="email" name="email" placeholder="Email" required>
+    <button type="submit">Add User</button>
+  </form>
+
+  <!-- User List -->
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="userList"></tbody>
+  </table>
+
+  <script>
+    const userForm = document.getElementById('userForm');
+    const userList = document.getElementById('userList');
+
+    // Fetch and display users
+    const fetchUsers = async () => {
+      const res = await fetch('/users');
+      const users = await res.json();
+      userList.innerHTML = users
+        .map(user => `
+          <tr>
+            <td>${user.id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+              <button class="delete" onclick="deleteUser(${user.id})">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+    };
+
+    // Add a new user
+    userForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(userForm);
+      const data = Object.fromEntries(formData.entries());
+      await fetch('/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      userForm.reset();
+      fetchUsers();
+    });
+
+    // Delete a user
+    const deleteUser = async (id) => {
+      await fetch(`/users/${id}`, { method: 'DELETE' });
+      fetchUsers();
+    };
+
+    // Initial fetch
+    fetchUsers();
+  </script>
+</body>
+</html>
